@@ -1,9 +1,10 @@
-import { GameState, wordList } from "../utils/utils";
+import { GameState } from "../utils/utils";
 
 const Paragraph: React.FC<{
   gameState: GameState;
   userInputs: string[];
   currentWordIndex: number;
+  wordList: string[];
 }> = (props) => {
   return (
     <div className="relative flex mt-10 mb-16 justify-center p-2">
@@ -11,7 +12,7 @@ const Paragraph: React.FC<{
         className={`flex flex-wrap justify-between h-64 w-[800px] text-xl border p-2
           ${props.gameState === "init" ? "blur-sm" : ""}`}
       >
-        {wordList.map((word, wordIdx) => {
+        {props.wordList.map((word, wordIdx) => {
           let className = "";
           let wordState = "";
 

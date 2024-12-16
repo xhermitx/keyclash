@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { FunctionKeys, GameState, wordList } from "./utils/utils";
+import { FunctionKeys, GameState, PARA_URL } from "./utils/utils";
 import Paragraph from "./components/Paragraph";
 import StartButton from "./components/StartButton";
+import axios from "axios";
 
 export default function App() {
+  const [wordList, setWordList] = useState([""]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [wordIndex, setWordIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
-  const [userInputs, setUserInputs] = useState(Array(wordList.length).fill(""));
+  const [userInputs, setUserInputs] = useState([""]);
   const [correctWordCount, setCorrecWordCount] = useState(0);
   const [gameState, setGameState] = useState<GameState>("init");
 
@@ -28,9 +32,7 @@ export default function App() {
       event.preventDefault;
       return; // Ignore modifier keys
     }
-
-    const currentWord = wordList[wordIndex];
-
+    const currentWord = wordList[wordIndex] || "";
     switch (event.key) {
       case "Backspace":
         setUserInputs((prev) => {
@@ -75,6 +77,21 @@ export default function App() {
   };
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(PARA_URL);
+        setWordList(res.data);
+        setUserInputs(Array(res.data.length).fill(""));
+        setIsLoading(false);
+      } catch (err) {
+        console.error(err);
+        setWordList("Error Generating Paragraph: Reload".split(" "));
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     if (gameState !== "inProgress") {
       console.log(gameState);
       return;
@@ -84,6 +101,10 @@ export default function App() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [wordIndex, charIndex, userInputs, correctWordCount, gameState]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="text-textColor">
@@ -104,6 +125,7 @@ export default function App() {
         gameState={gameState}
         userInputs={userInputs}
         currentWordIndex={wordIndex}
+        wordList={wordList}
       />
       {gameState === "init" && <StartButton setGameState={setGameState} />}
     </div>
