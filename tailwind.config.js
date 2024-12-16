@@ -8,7 +8,7 @@ export default {
         itemColor: "#3c6e71",
         shadowColor: "#d9d9d9",
         textColor: "#284b63",
-        accentColor: "353535",
+        accentColor: "#353535",
       },
     },
   },

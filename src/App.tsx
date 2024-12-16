@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { FunctionKeys, GameState, PARA_URL } from "./utils/utils";
+import {
+  FunctionKeys,
+  GameState,
+  GetResults,
+  PARA_URL,
+  Results,
+} from "./utils/utils";
 import Paragraph from "./components/Paragraph";
 import StartButton from "./components/StartButton";
 import axios from "axios";
+import ResultsChart from "./components/Results";
 
 export default function App() {
   const [wordList, setWordList] = useState([""]);
@@ -14,15 +21,28 @@ export default function App() {
   const [userInputs, setUserInputs] = useState([""]);
   const [correctWordCount, setCorrecWordCount] = useState(0);
   const [gameState, setGameState] = useState<GameState>("init");
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [results, setResults] = useState<Results>({
+    wpm: 0,
+    accuracy: 0,
+  });
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (gameState === "inProgress") {
+      timer = setInterval(() => {
+        setTimeElapsed((prevTime) => prevTime + 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [timeElapsed]);
 
   const handleGameEnd = (currentWord: string) => {
-    alert(
-      `Game Over! Correct Word Count: ${
-        correctWordCount +
-        1 +
-        (userInputs[wordIndex]?.trim() === currentWord ? 1 : 0)
-      } out of ${wordList.length}`
-    );
+    const correctCount =
+      correctWordCount +
+      1 +
+      (userInputs[wordIndex]?.trim() === currentWord ? 1 : 0);
+    setResults(GetResults(correctCount, timeElapsed, wordList.length));
     setGameState("end");
     return;
   };
@@ -77,12 +97,13 @@ export default function App() {
   };
 
   useEffect(() => {
+    setTimeElapsed(0);
     const fetchData = async () => {
       try {
         const res = await axios.get(PARA_URL);
         setWordList(res.data);
         setUserInputs(Array(res.data.length).fill(""));
-        setIsLoading(false);
+        setTimeout(() => setIsLoading(false), 1500);
       } catch (err) {
         console.error(err);
         setWordList("Error Generating Paragraph: Reload".split(" "));
@@ -103,7 +124,13 @@ export default function App() {
   }, [wordIndex, charIndex, userInputs, correctWordCount, gameState]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="rounded-md m-auto mt-48 h-12 w-12 border-4 border-t-4 border-itemColor animate-spin"></div>
+    );
+  }
+
+  if (gameState === "end") {
+    return <ResultsChart results={results} />;
   }
 
   return (
