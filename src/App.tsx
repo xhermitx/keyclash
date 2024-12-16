@@ -105,7 +105,7 @@ export default function App() {
           setGameState("inProgress");
         }}
         disabled={gameState === "inProgress"}
-        className="bg-[#232D3F] p-2 mt-10 rounded shadow-lg shadow-[#005B41
+        className="bg-itemColor p-2 mt-10 rounded shadow-lg shadow-shadowColor
       active:bg-transparent outline-none transition ease-in duration-500"
       >
         Start Game!

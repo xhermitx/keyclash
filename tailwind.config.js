@@ -4,10 +4,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        bgColor: "#000000",
-        itemColor: "#082032",
-        shadowColor: "#334756",
-        textColor: "#F0A500",
+        bgColor: "#231E23",
+        itemColor: "#BF1363",
+        shadowColor: "#39A6A3",
+        textColor: "#DEEEEA",
       },
     },
   },

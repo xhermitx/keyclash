@@ -6,7 +6,7 @@ const Paragraph: React.FC<{
   currentWordIndex: number;
 }> = (props) => {
   return (
-    <div className="relative flex mt-32 justify-center">
+    <div className="relative flex mt-32 mb-20 justify-center p-2">
       <p
         className={`flex flex-wrap justify-between h-56 w-[500px] text-2xl
           ${props.gameState === "init" ? "blur-sm" : ""}`}
@@ -16,8 +16,15 @@ const Paragraph: React.FC<{
             {/* Split the word into characters and compare with user input */}
             {word.split("").map((character, charIdx) => {
               let className = "";
+
               if (wordIdx === props.currentWordIndex) {
                 className = " bg-shadowColor";
+              }
+              if (
+                wordIdx < props.currentWordIndex &&
+                props.userInputs[wordIdx][charIdx] !== character
+              ) {
+                className = "text-red-500";
               }
               if (props.userInputs[wordIdx][charIdx] !== undefined) {
                 className =
@@ -36,8 +43,8 @@ const Paragraph: React.FC<{
       </p>
       {props.gameState === "init" ? (
         <div
-          className={`flex rounded-2xl absolute top-0 h-56 w-[500px] text-3xl justify-center
-         bg-slate-600 bg-opacity-80`}
+          className={`flex rounded-2xl absolute top-0 h-72 w-[510px] text-3xl justify-center
+         bg-shadowColor bg-opacity-80`}
         >
           <h1 className="my-auto">Click the button to Start!</h1>
         </div>
