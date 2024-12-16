@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { GameState, wordList } from "./utils/utils";
+import { FunctionKeys, GameState, wordList } from "./utils/utils";
 import Paragraph from "./components/Paragraph";
+import StartButton from "./components/StartButton";
 
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
@@ -23,11 +24,7 @@ export default function App() {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (
-      event.key === "Shift" ||
-      event.key === "Control" ||
-      event.key === "Alt"
-    ) {
+    if (FunctionKeys.includes(event.key)) {
       event.preventDefault;
       return; // Ignore modifier keys
     }
@@ -36,14 +33,14 @@ export default function App() {
 
     switch (event.key) {
       case "Backspace":
-        // Remove the last character
         setUserInputs((prev) => {
           const newInputs = [...prev];
-          newInputs[wordIndex] = newInputs[wordIndex].slice(0, -1);
+          newInputs[wordIndex] = newInputs[wordIndex].slice(0, -1); // Remove the last character
           return newInputs;
         });
-        setCharIndex((prev) => Math.max(prev - 1, 0));
+        setCharIndex((prev) => Math.max(prev - 1, 0)); // Incase the index goes negative
         break;
+
       case " ":
         if (wordIndex === wordList.length - 1) {
           handleGameEnd(currentWord);
@@ -52,20 +49,18 @@ export default function App() {
         if (userInputs[wordIndex]?.trim() === currentWord) {
           setCorrecWordCount((prev) => prev + 1);
         }
-
         //Jump to next word
         setWordIndex((prev) => prev + 1);
         setCharIndex(0);
         break;
+
       default:
-        if (charIndex < currentWord.length) {
-          setUserInputs((inputs) => {
-            const newInputs = [...inputs];
-            newInputs[wordIndex] += event.key;
-            return newInputs;
-          });
-          setCharIndex((prev) => prev + 1);
-        }
+        setUserInputs((inputs) => {
+          const newInputs = [...inputs];
+          newInputs[wordIndex] += event.key;
+          return newInputs;
+        });
+        setCharIndex((prev) => prev + 1);
         // Check if it's the last word
         if (
           wordIndex === wordList.length - 1 &&
@@ -73,9 +68,7 @@ export default function App() {
           userInputs[wordIndex] + event.key === currentWord // check if the last typed char is correct
         ) {
           handleGameEnd(currentWord);
-          setCorrecWordCount((prev) => {
-            return prev + 1;
-          });
+          setCorrecWordCount((prev) => prev + 1);
         }
         break;
     }
@@ -94,22 +87,25 @@ export default function App() {
 
   return (
     <div className="text-textColor">
-      <h1 className="text-3xl uppercase">Typing Game</h1>
+      <h1 className="text-5xl uppercase">KEY-CLASH!</h1>
+      <div
+        className={`text-2xl mt-10 rounded w-56 m-auto h-10 border-2
+            ${
+              userInputs[wordIndex] === wordList[wordIndex]
+                ? "text-green-500"
+                : userInputs[wordIndex].length >= wordList[wordIndex].length
+                ? "text-red-500"
+                : ""
+            }`}
+      >
+        {userInputs[wordIndex] || (wordIndex === 0 && "Typed Word Here")}
+      </div>
       <Paragraph
         gameState={gameState}
         userInputs={userInputs}
         currentWordIndex={wordIndex}
       />
-      <button
-        onClick={() => {
-          setGameState("inProgress");
-        }}
-        disabled={gameState === "inProgress"}
-        className="bg-itemColor p-2 mt-10 rounded shadow-lg shadow-shadowColor
-      active:bg-transparent outline-none transition ease-in duration-500"
-      >
-        Start Game!
-      </button>
+      {gameState === "init" && <StartButton setGameState={setGameState} />}
     </div>
   );
 }
