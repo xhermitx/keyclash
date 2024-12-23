@@ -1,6 +1,6 @@
-export const PARA_URL = "https://random-word-api.herokuapp.com/word?number=50";
+import { Results } from "./types";
 
-export type GameState = "init" | "end" | "inProgress";
+export const PARA_URL = "https://random-word-api.herokuapp.com/word?number=50";
 
 export const FunctionKeys = [
   "Shift",
@@ -10,11 +10,6 @@ export const FunctionKeys = [
   "Enter",
   "Escape",
 ];
-
-export type Results = {
-  wpm: number;
-  accuracy: number;
-};
 
 export function GetResults(
   correctWordCount: number,

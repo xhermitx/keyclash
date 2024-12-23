@@ -1,5 +1,5 @@
 import React from "react";
-import { Results } from "../utils/utils";
+import { Results } from "../utils/types";
 import Chart from "react-google-charts";
 
 const ResultsChart: React.FC<{ results: Results }> = (props) => {

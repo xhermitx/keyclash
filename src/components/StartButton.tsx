@@ -1,5 +1,5 @@
 import React from "react";
-import { GameState } from "../utils/utils";
+import { GameState } from "../utils/types";
 
 const StartButton: React.FC<{
   setGameState: React.Dispatch<React.SetStateAction<GameState>>;
@@ -7,7 +7,7 @@ const StartButton: React.FC<{
   return (
     <div
       onClick={() => {
-        props.setGameState("inProgress");
+        props.setGameState("in_progress");
       }}
       className="text-lg p-2 mt-20 group relative w-max m-auto hover:cursor-pointer"
     >

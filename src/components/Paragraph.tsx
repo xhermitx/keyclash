@@ -1,4 +1,4 @@
-import { GameState } from "../utils/utils";
+import { GameState } from "../utils/types";
 
 const Paragraph: React.FC<{
   gameState: GameState;
@@ -10,7 +10,7 @@ const Paragraph: React.FC<{
     <div className="relative flex mt-10 mb-16 justify-center p-2">
       <p
         className={`flex flex-wrap justify-between h-64 w-[800px] text-xl border p-2
-          ${props.gameState === "init" ? "blur-sm" : ""}`}
+          ${props.gameState === "created" ? "blur-sm" : ""}`}
       >
         {props.wordList.map((word, wordIdx) => {
           let className = "";
@@ -53,7 +53,7 @@ const Paragraph: React.FC<{
           );
         })}
       </p>
-      {props.gameState === "init" ? (
+      {props.gameState === "created" ? (
         <div
           className={`flex rounded-2xl absolute top-0 h-72 w-[820px] text-3xl justify-center
          bg-shadowColor bg-opacity-80`}
