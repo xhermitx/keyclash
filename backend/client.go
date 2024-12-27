@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -27,10 +28,12 @@ var upgrader = websocket.Upgrader{
 }
 
 type Player struct {
+	Name     string `json:"name"`
+	Position int    `json:"position"`
+
 	room *Room
 	conn *websocket.Conn
-	name string
-	send chan any
+	send chan Message
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -56,7 +59,7 @@ func (p *Player) readPump() {
 		return nil
 	})
 	for {
-		var message Message
+		var message Player
 		if err := p.conn.ReadJSON(&message); err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
@@ -65,12 +68,8 @@ func (p *Player) readPump() {
 		}
 		log.Printf("\nReceived message %+v", message)
 
-		if message.Type == StatusBroadcast {
-			p.room.statusUpdate <- message.Status
-		} else {
-			p.room.broadcast <- message
-		}
-
+		newMessage := NewMessage(PositionUpdate, message)
+		p.room.broadcast <- newMessage
 	}
 }
 
@@ -102,6 +101,7 @@ func (p *Player) writePump() {
 			}
 
 			if err := p.conn.WriteJSON(message); err != nil {
+				log.Println("Error Writing the message")
 				return
 			}
 
@@ -126,11 +126,13 @@ func serveWs(room *Room, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	player := &Player{
-		name: NamePool[len(room.players)], // Name assigned using NamePool
+		Name: NamePool[len(room.players)], // Name assigned using NamePool
+
 		room: room,
 		conn: conn,
-		send: make(chan any, 256),
+		send: make(chan Message, 256),
 	}
+
 	player.room.join <- player
 
 	// Allow collection of memory referenced by the caller by doing all work in

@@ -53,15 +53,13 @@ const Paragraph: React.FC<{
           );
         })}
       </p>
-      {props.gameState === "created" ? (
+      {props.gameState === "created" && (
         <div
           className={`flex rounded-2xl absolute top-0 h-72 w-[820px] text-3xl justify-center
          bg-shadowColor bg-opacity-80`}
         >
           <h1 className="my-auto">Click the button to Start!</h1>
         </div>
-      ) : (
-        ""
       )}
     </div>
   );

@@ -1,17 +1,30 @@
 package main
 
+type RoomRequest struct {
+	MaxPlayers int `json:"max_players"`
+}
+
+type PlayerJoined struct {
+	PlayerName string `json:"player_name"`
+}
+
 type Message struct {
-	Type     MessageType `json:"type"`
-	Name     string      `json:"name"`
-	Position int         `json:"position"`
-	Status   RoomStatus  `json:"status"`
+	Type    MessageType `json:"type"`
+	Payload any         `json:"payload"`
+}
+
+func NewMessage(msgType MessageType, payload any) Message {
+	return Message{
+		Type:    msgType,
+		Payload: payload,
+	}
 }
 
 type MessageType string
 
 const (
-	PositionBroadcast MessageType = "position"
-	StatusBroadcast   MessageType = "status"
+	PositionUpdate MessageType = "Position"
+	StatusUpdate   MessageType = "Status"
 )
 
 // NamePool : Default names assigned to the players

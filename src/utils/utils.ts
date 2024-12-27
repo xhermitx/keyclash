@@ -1,6 +1,6 @@
 import { Results } from "./types";
 
-export const PARA_URL = "https://random-word-api.herokuapp.com/word?number=50";
+export const SERVER_URL = "ws://localhost:8080/game/ws/";
 
 export const FunctionKeys = [
   "Shift",

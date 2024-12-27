@@ -1,17 +1,21 @@
 [
   {
-    "player_name": "xhermitx",
-    "position": 1
-  },
-  {
-    "player_name": "kermit",
+    "name": "Gryffindor",
     "position": 5
   },
   {
-    "player_name": "kermit",
-    "position": 5
+    "name": "HufflePuff",
+    "position": 20
   },
   {
-    "status": "in_progress"
+    "name": "RavenClaw",
+    "position": 56
+  },
+  {
+    "name": "Slytherin",
+    "position": 0
+  },
+  {
+    "max_players": 3
   }
 ]

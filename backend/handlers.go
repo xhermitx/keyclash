@@ -1,12 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"sync"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -21,7 +21,16 @@ func NewGameServer() *GameServer {
 }
 
 func (gs *GameServer) CreateGame(w http.ResponseWriter, r *http.Request) {
-	room := NewRoom(uuid.NewString()[:6])
+
+	var payload RoomRequest
+
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	room := NewRoom(payload.MaxPlayers)
 	gs.rooms.Store(room.ID, room)
 
 	go room.run()
@@ -41,10 +50,11 @@ func (gs *GameServer) GameServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(room.(*Room).players) > 4 {
+	if len(room.(*Room).players) == room.(*Room).maxPlayers {
 		http.Error(w, "Too many players", http.StatusTooManyRequests)
 		return
 	}
+
 	log.Println("Someone joined the game:", roomId)
 	serveWs(room.(*Room), w, r)
 }
