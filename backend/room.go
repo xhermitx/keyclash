@@ -7,7 +7,7 @@ import (
 )
 
 type Room struct {
-	ID        string     `json:"-"`
+	id        string
 	Status    RoomStatus `json:"status"`
 	Paragraph string     `json:"paragraph"`
 	Winner    string     `json:"winner"`
@@ -22,7 +22,7 @@ type Room struct {
 
 func NewRoom(maxPlayers int) *Room {
 	return &Room{
-		ID:        uuid.NewString()[:6],
+		id:        uuid.NewString()[:6],
 		Status:    Created,
 		Paragraph: "What even is Life? Isn't it just a tiny phenomena in this massive universe. If that were true(which I certainly believe it is), can't everything we think of or do be predicted? Think about it. If there was a certain computer which enough storage to have all the information of existence and could compute everything, won't it be able to predict everything that is about to happend from this point on?",
 

@@ -1,11 +1,9 @@
 import { useContext, useEffect } from "react";
 // import { PlayerContext } from "../store/PlayerStore";
 import Paragraph from "../components/Paragraph";
-import StartButton from "../components/StartButton";
 import ResultsChart from "../components/Results";
 import { useParams } from "react-router-dom";
 import { GameContext } from "../store/GameStore";
-import { Player } from "../utils/types";
 
 function GamePage() {
   const { roomId } = useParams();
@@ -18,61 +16,23 @@ function GamePage() {
   }
 
   const {
-    para,
+    players,
     isLoading,
-    socket,
-    name,
     gameState,
     wordList,
     userInputs,
     wordIndex,
     results,
-    charIndex,
     setGameId,
-    setUserInputs,
-    setWordList,
-    setGameState,
   } = gameContext;
-
-  // const {
-  //   name,
-  //   gameState,
-  //   wordList,
-  //   userInputs,
-  //   wordIndex,
-  //   results,
-  //   charIndex,
-  //   setUserInputs,
-  //   setWordList,
-  //   setGameState,
-  //   handleKeyDown,
-  //   setName,
-  // } = playerContext;
 
   useEffect(() => {
     setGameId(roomId ?? "");
   }, []);
 
   useEffect(() => {
-    if (para.length > 0) {
-      const temp = para.split(" ");
-      setWordList(temp);
-      setUserInputs(Array(temp.length).fill(""));
-    }
-  }, [para]);
-
-  useEffect(() => {
-    setGameState(gameState);
-  }, [gameState]);
-
-  useEffect(() => {
-    const message: Player = {
-      name: name,
-      position: charIndex,
-    };
-    // Update the player position over Socket Server
-    socket?.send(JSON.stringify(message));
-  });
+    console.log(players);
+  }, [players]);
 
   if (isLoading) {
     return (
@@ -99,13 +59,7 @@ function GamePage() {
       >
         {userInputs[wordIndex] || (wordIndex === 0 && "Typed Word Here")}
       </div>
-      <Paragraph
-        gameState={gameState}
-        userInputs={userInputs}
-        currentWordIndex={wordIndex}
-        wordList={wordList}
-      />
-      {gameState === "created" && <StartButton setGameState={setGameState} />}
+      <Paragraph />
     </div>
   );
 }

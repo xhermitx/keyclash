@@ -1,6 +1,13 @@
-import { createContext, ReactNode, useEffect, useState } from "react";
-import { GameContextType, GameState, Player, Results } from "../utils/types";
-import { FunctionKeys, GetResults } from "../utils/utils";
+import { createContext, ReactNode, useEffect, useRef, useState } from "react";
+import {
+  colorCodes,
+  GameContextType,
+  GameStatus,
+  Player,
+  Results,
+  ServerMessage,
+} from "../utils/types";
+import { FunctionKeys, GetResults, SERVER_URL } from "../utils/utils";
 
 export const GameContext = createContext<GameContextType | undefined>(
   undefined
@@ -11,47 +18,30 @@ interface GameProviderProps {
 }
 
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
-  const [name, setName] = useState<string>("");
+  const playerName = useRef("");
   const [wordList, setWordList] = useState<string[]>([]);
-  const [wordIndex, setWordIndex] = useState<number>(0);
-  const [charIndex, setCharIndex] = useState<number>(0);
-  const [userInputs, setUserInputs] = useState<string[]>(
-    Array(wordList.length).fill("")
-  );
-  const [correctWordCount, setCorrecWordCount] = useState<number>(0);
-  const [timeElapsed, setTimeElapsed] = useState<number>(0);
+  const [wordIndex, setWordIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [userInputs, setUserInputs] = useState<string[]>([]);
+  const [correctWordCount, setCorrecWordCount] = useState(0);
+  const [timeElapsed, setTimeElapsed] = useState(0);
   const [results, setResults] = useState<Results>({ wpm: 0, accuracy: 0 });
 
-  const [gameId, setGameId] = useState<string>("");
-  const [para, setPara] = useState<string>(
-    "What even is Life? Isn't it just a tiny phenomena in this massive universe. If that were true(which I certainly believe it is), can't everything we think of or do be predicted? Think about it. If there was a certain computer which enough storage to have all the information of existence and could compute everything, won't it be able to predict everything that is about to happend from this point on?"
-  );
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [gameState, setGameState] = useState<GameState>("created");
+  const [gameId, setGameId] = useState("");
+  const [para, setPara] = useState("");
+  const [players, setPlayers] = useState<Record<string, Player>>({});
+  const [playerColor, setPlayerColor] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [gameState, setGameState] = useState<GameStatus>("created");
   const [winner, setWinner] = useState<string>("");
   const [socket, setSocket] = useState<WebSocket>();
-
-  // useEffect(() => {
-  //   if (gameId.length > 0) {
-  //     const url = SERVER_URL + gameId;
-  //     setSocket(new WebSocket(url));
-  //   }
-  // }, [gameId]);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-  }, []);
 
   const handleGameEnd = (currentWord: string) => {
     const correctCount =
       correctWordCount +
-      1 +
-      (userInputs[wordIndex]?.trim() === currentWord ? 1 : 0);
+      (userInputs[wordIndex]?.trim() === currentWord ? 2 : 1);
     setResults(GetResults(correctCount, timeElapsed, wordList.length));
-    setGameState("finished");
+    setGameState("player_done");
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -81,6 +71,13 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         }
         //Jump to next word
         setWordIndex((prev) => prev + 1);
+
+        const positionUpdate: Player = {
+          name: playerName.current,
+          position: wordIndex,
+        };
+        socket?.send(JSON.stringify(positionUpdate));
+
         setCharIndex(0);
         break;
 
@@ -126,65 +123,84 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     };
   }, [charIndex, gameState]);
 
-  // useEffect(() => {
-  //   socket?.addEventListener("open", () => {
-  //     console.log("Connection established");
-  //   });
+  useEffect(() => {
+    const url = SERVER_URL + gameId;
+    const socketInst = new WebSocket(url);
+    setSocket(socketInst);
 
-  //   socket?.addEventListener("message", (event) => {
-  //     try {
-  //       console.log("message: ", event.data);
-  //       const message = JSON.parse(event.data);
+    socketInst.onopen = () => {
+      console.log("Connection established");
+    };
 
-  //       switch (message.type) {
-  //         case "PositionBroadcast":
-  //           if (players.length < 4) {
-  //             // A New player is added to the game
-  //             setPlayers((prev) => {
-  //               const player: Player = {
-  //                 name: message.name,
-  //                 position: message.position,
-  //               };
-  //               const newPlayer = { ...prev, player };
-  //               return newPlayer;
-  //             });
-  //           } else {
-  //             // Update the positions
-  //             setPlayers((prev) =>
-  //               prev.map((player) =>
-  //                 player.name === message.name
-  //                   ? { ...player, position: message.position }
-  //                   : player
-  //               )
-  //             );
-  //           }
-  //           break;
+    socketInst.onmessage = (event) => {
+      try {
+        console.log("message: ", event.data);
+        const message: ServerMessage = JSON.parse(event.data);
 
-  //         case "StatusBroadcast":
-  //           // Set the wordList initially
-  //           if (para === "") {
-  //             setIsLoading(false);
-  //             setPara(message.payload.paragraph);
-  //           }
+        switch (message.type) {
+          case "Position":
+            if (gameState === "created") {
+              if (playerName.current === "") {
+                playerName.current = message.payload.name;
+                console.log("Player Name set: ", playerName.current);
+              } else if (message.payload.name !== playerName.current) {
+                setPlayers((prev) => {
+                  const newPlayer: Player = {
+                    name: message.payload.name,
+                    position: message.payload.position,
+                  };
+                  return {
+                    ...prev,
+                    [newPlayer.name]: newPlayer, // Use the name as the key
+                  };
+                });
+                setPlayerColor((prev) => ({
+                  ...prev,
+                  [message.payload.name]:
+                    prev[message.payload.name] ??
+                    colorCodes[Object.values(prev).length],
+                }));
+              }
+            }
+            break;
 
-  //           // Game has ended and we have a winner
-  //           if (winner && message.payload.status === "finished") {
-  //             setWinner(message.payload.winner);
-  //           }
+          case "Status":
+            // Set the wordList initially
+            if (para === "") {
+              const newPara = message.payload.paragraph;
+              setPara(newPara);
+              setWordList(newPara.split(" "));
+              setUserInputs(Array(newPara.split(" ").length).fill(""));
+              setIsLoading(false);
+            }
 
-  //           //Update the game state
-  //           message.payload.state && setGameState(message.payload.state);
-  //       }
-  //     } catch (err) {
-  //       console.log(err);
-  //     }
-  //   });
-  // }, [socket]);
+            // Game has ended and we have a winner
+            if (winner === "" && message.payload.status === "finished") {
+              setWinner(message.payload.winner);
+            }
+
+            //Update the game state
+            message.payload.status && setGameState(message.payload.status);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    socketInst.onerror = (error: Event) => {
+      console.log(error);
+    };
+
+    return () => {
+      socketInst.close();
+    };
+  }, [gameId]);
 
   return (
     <GameContext.Provider
       value={{
-        name,
+        playerColor,
+        playerName,
         wordList,
         wordIndex,
         charIndex,
@@ -207,7 +223,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         setCorrecWordCount,
         setGameState,
         setResults,
-        setName,
         handleGameEnd,
         setWordList,
         handleKeyDown,
@@ -216,6 +231,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         setPlayers,
         setPara,
         setSocket,
+        setPlayerColor,
       }}
     >
       {children}

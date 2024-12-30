@@ -66,7 +66,6 @@ func (p *Player) readPump() {
 			}
 			log.Println(err)
 		}
-		log.Printf("\nReceived message %+v", message)
 
 		newMessage := NewMessage(PositionUpdate, message)
 		p.room.broadcast <- newMessage

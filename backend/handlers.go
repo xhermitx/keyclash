@@ -31,11 +31,11 @@ func (gs *GameServer) CreateGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	room := NewRoom(payload.MaxPlayers)
-	gs.rooms.Store(room.ID, room)
+	gs.rooms.Store(room.id, room)
 
 	go room.run()
 
-	_, err := w.Write([]byte(fmt.Sprint("New game created:", room.ID)))
+	_, err := w.Write([]byte(fmt.Sprint("New game created:", room.id)))
 	if err != nil {
 		log.Println(err)
 	}

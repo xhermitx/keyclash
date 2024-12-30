@@ -1,34 +1,16 @@
 import React from "react";
 
-export type GameState = "created" | "in_progress" | "finished";
-export type PlayerState = "idol" | "typing" | "finished";
+export type GameStatus = "created" | "in_progress" | "player_done" | "finished";
+export const colorCodes = [
+  "bg-blue-400",
+  "bg-amber-400",
+  "bg-orange-400",
+  "bg-teal-400",
+];
 
 export interface Results {
   wpm: number;
   accuracy: number;
-}
-
-export interface PlayerContextType {
-  name: string;
-  wordList: string[];
-  wordIndex: number;
-  charIndex: number;
-  userInputs: string[];
-  correctWordCount: number;
-  gameState: GameState;
-  timeElapsed: number;
-  results: Results;
-
-  setName: React.Dispatch<React.SetStateAction<string>>;
-  setWordList: React.Dispatch<React.SetStateAction<string[]>>;
-  setWordIndex: React.Dispatch<React.SetStateAction<number>>;
-  setCharIndex: React.Dispatch<React.SetStateAction<number>>;
-  setUserInputs: React.Dispatch<React.SetStateAction<string[]>>;
-  setCorrecWordCount: React.Dispatch<React.SetStateAction<number>>;
-  setGameState: React.Dispatch<React.SetStateAction<GameState>>;
-  setResults: React.Dispatch<React.SetStateAction<Results>>;
-  handleKeyDown: (event: KeyboardEvent) => void;
-  handleGameEnd: (currentWord: string) => void;
 }
 
 export interface Player {
@@ -37,7 +19,6 @@ export interface Player {
 }
 
 export interface GameContextType {
-  name: string;
   wordList: string[];
   wordIndex: number;
   charIndex: number;
@@ -46,23 +27,25 @@ export interface GameContextType {
   correctWordCount: number;
   results: Results;
   para: string;
-  players: Player[];
+  players: Record<string, Player>;
+  playerColor: Record<string, string>;
   isLoading: boolean;
-  gameState: GameState;
+  gameState: GameStatus;
   winner: string;
   socket: WebSocket | undefined;
   timeElapsed: number;
 
-  setName: React.Dispatch<React.SetStateAction<string>>;
+  playerName: React.RefObject<string>;
+  setPlayerColor: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   setWordList: React.Dispatch<React.SetStateAction<string[]>>;
   setWordIndex: React.Dispatch<React.SetStateAction<number>>;
   setCharIndex: React.Dispatch<React.SetStateAction<number>>;
   setUserInputs: React.Dispatch<React.SetStateAction<string[]>>;
   setGameId: React.Dispatch<React.SetStateAction<string>>;
   setPara: React.Dispatch<React.SetStateAction<string>>;
-  setPlayers: React.Dispatch<React.SetStateAction<Player[]>>;
+  setPlayers: React.Dispatch<React.SetStateAction<Record<string, Player>>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setGameState: React.Dispatch<React.SetStateAction<GameState>>;
+  setGameState: React.Dispatch<React.SetStateAction<GameStatus>>;
   setResults: React.Dispatch<React.SetStateAction<Results>>;
   setWinner: React.Dispatch<React.SetStateAction<string>>;
   setCorrecWordCount: React.Dispatch<React.SetStateAction<number>>;
@@ -72,16 +55,11 @@ export interface GameContextType {
 }
 
 export interface GameUpdate {
-  status: GameState;
+  status: GameStatus;
   paragraph: string;
   winner: string;
 }
 
-export interface PositionUpdate {
-  Name: string;
-  Position: number;
-}
-
 export type ServerMessage =
-  | { type: "Position"; payload: PositionUpdate }
+  | { type: "Position"; payload: Player }
   | { type: "Status"; payload: GameUpdate };
